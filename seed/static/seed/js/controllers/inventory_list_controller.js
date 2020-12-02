@@ -157,7 +157,7 @@ angular.module('BE.seed.controller.inventory_list', [])
         }
       };
 
-      function populated_columns_modal () {
+      function populated_columns_modal() {
         $uibModal.open({
           backdrop: 'static',
           templateUrl: urls.static_url + 'seed/partials/show_populated_columns_modal.html',
@@ -192,7 +192,7 @@ angular.module('BE.seed.controller.inventory_list', [])
         });
       };
 
-      function updateApplicableLabels (current_labels) {
+      function updateApplicableLabels(current_labels) {
         var inventoryIds;
         if ($scope.inventory_type === 'properties') {
           inventoryIds = _.map($scope.data, 'property_view_id').sort();
@@ -362,7 +362,10 @@ angular.module('BE.seed.controller.inventory_list', [])
 
       var propertyPolygonCache = {};
       var taxlotPolygonCache = {};
-      var propertyFootprintColumn = _.find($scope.columns, {column_name: 'property_footprint', table_name: 'PropertyState'});
+      var propertyFootprintColumn = _.find($scope.columns, {
+        column_name: 'property_footprint',
+        table_name: 'PropertyState'
+      });
       var taxlotFootprintColumn = _.find($scope.columns, {column_name: 'taxlot_footprint', table_name: 'TaxLotState'});
       $scope.polygon = function (record, tableName) {
         var outputSize = 180;
@@ -816,14 +819,28 @@ angular.module('BE.seed.controller.inventory_list', [])
               return $scope.cycle.selected_cycle.id;
             },
             ids: function () {
-              var viewId = $scope.inventory_type === 'properties' ? 'property_view_id' : 'taxlot_view_id';
-              var visibleRowIds = _.map($scope.gridApi.core.getVisibleRows($scope.gridApi.grid), function(row) {
-                return row.entity[viewId]
+              var visibleRows = _.map($scope.gridApi.core.getVisibleRows($scope.gridApi.grid), function (row) {
+                return _.has(row.entity, 'property_view_id') ? {
+                  id: row.entity.property_view_id,
+                  type: 'property'
+                } : {
+                  id: row.entity.taxlot_view_id,
+                  type: 'taxlot'
+                };
               });
-              var selectedRowIds = _.map($scope.gridApi.selection.getSelectedRows(), viewId);
-              return _.filter(visibleRowIds, function (id) {
-                return _.includes(selectedRowIds, id);
+
+              var selectedRows = _.map($scope.gridApi.selection.getSelectedRows(), function (entity) {
+                return _.has(entity, 'property_view_id') ? {
+                  id: entity.property_view_id,
+                  type: 'property'
+                } : {
+                  id: entity.taxlot_view_id,
+                  type: 'taxlot'
+                };
               });
+
+              // Return the intersection of visible and selected rows (collapsed rows are ignored)
+              return _.intersectionWith(visibleRows, selectedRows, _.isEqual);
             },
             columns: function () {
               return _.map($scope.columns, 'name');
@@ -843,7 +860,7 @@ angular.module('BE.seed.controller.inventory_list', [])
         });
       };
 
-      function currentColumns () {
+      function currentColumns() {
         // Save all columns except first 3
         var gridCols = _.filter($scope.gridApi.grid.columns, function (col) {
           return !_.includes(['treeBaseRowHeaderCol', 'selectionRowHeaderCol', 'notes_count', 'merged_indicator', 'id'], col.name) && col.visible;
