@@ -762,9 +762,14 @@ class ImportFileViewSet(viewsets.ViewSet):
 
         result = {'status': 'success'}
 
-        membership = OrganizationUser.objects.select_related('organization') \
-            .get(organization_id=organization_id, user=request.user)
-        organization = membership.organization
+        try:
+            membership = OrganizationUser.objects.select_related('organization') \
+                .get(organization_id=organization_id, user=request.user)
+            organization = membership.organization
+        except:
+            return JsonResponse(
+                {'status': 'error', 'message': 'Could not find membership with org_id=' + str(
+                    organization_id)}, status=status.HTTP_400_BAD_REQUEST)
 
         # For now, each organization holds their own mappings. This is non-ideal, but it is the
         # way it is for now. In order to move to parent_org holding, then we need to be able to
