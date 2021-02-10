@@ -115,6 +115,17 @@ fields. Follow the steps below to add new fields to the SEED database:
 #. Test import workflow with mapping to new fields
 
 
+NginX Notes
+-----------
+
+Toggle *maintenance mode* to display a maintenance page and prevent access to all site resources including API endpoints:
+
+.. code-block:: Bash
+
+    docker exec seed_web ./docker/maintenance.sh on
+    docker exec seed_web ./docker/maintenance.sh off
+
+
 AngularJS Integration Notes
 ---------------------------
 
@@ -405,11 +416,11 @@ To make a release do the following:
 
 .. code-block:: console
 
-    python docs/scripts/change_log.py –k GITHUB_API_TOKEN –s 2018-02-26 –e 2018-05-30
+    python docs/scripts/change_log.py –k GITHUB_API_TOKEN –s 2020-09-25 –e 2020-12-28
 
-4. Paste the results (remove unneeded Accepted Pull Requests) into the CHANGELOG.md. Make sure to cleanup the formatting.
+4. Paste the results (remove unneeded Accepted Pull Requests and the new issues) into the CHANGELOG.md. Cleanup the formatting (if needed).
 5. Make sure that any new UI needing localization has been tagged for translation, and that any new translation keys exist in the lokalise.com project. (see :doc:`translation documentation <translation>`).
-6. Once develop passes, then create a new PR from develop to master.
+6. Once develop passes, then create a new PR from develop to main.
 7. Draft new Release from Github (https://github.com/SEED-platform/seed/releases).
 8. Include list of changes since previous release (i.e. the content in the CHANGELOG.md)
 9. Verify that the Docker versions are built and pushed to Docker hub (https://hub.docker.com/r/seedplatform/seed/tags/).

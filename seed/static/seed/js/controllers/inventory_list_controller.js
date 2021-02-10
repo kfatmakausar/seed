@@ -842,6 +842,18 @@ angular.module('BE.seed.controller.inventory_list', [])
               // Return the intersection of visible and selected rows (collapsed rows are ignored)
               return _.intersectionWith(visibleRows, selectedRows, _.isEqual);
             },
+            filter_header_string: function () {
+              if ($scope.selected_labels.length) {
+                return [
+                  'Filter Method: ""',
+                  $scope.labelLogic,
+                  '"", Filter Labels: "',
+                  $scope.selected_labels.map(label => label.name).join(' - '),
+                  '"'
+                 ].join('');
+              }
+              return 'Filter Method: ""none""';
+            },
             columns: function () {
               return _.map($scope.columns, 'name');
             },

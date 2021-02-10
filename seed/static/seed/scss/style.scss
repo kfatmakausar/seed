@@ -2369,6 +2369,15 @@ select {
   background-color: #F1F1F1;
 }
 
+/* Holds inline form for creating new labels */
+.newAnalysisInput {
+  margin: 20px;
+  border: 1px solid #EEE;
+  padding: 10px 10px 5px 10px;
+  border-radius: 5px;
+  background-color: #F1F1F1;
+}
+
 #label_admin {
   .sectionLabel {
     font-family: "PT Sans Narrow", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -2617,6 +2626,27 @@ tags-input .tags {
 
 gs-input .tags .tag-item .remove-button {
   color: #FFF;
+}
+
+/* ANALYSIS STATUS COLORS */
+
+.analysis-status {
+
+  &.creating, &.warning {
+    background: $warningBackground !important;
+  }
+
+  &.stopped, &.failed, &.error {
+    background: $errorBackground !important;
+  }
+
+  &.ready, &.completed, &.success {
+    background: $successBackground !important;
+  }
+
+  &.queued, &.running, &.info {
+    background: $infoBackground !important;
+  }
 }
 
 /* NOTIFICATIONS */
@@ -3652,4 +3682,9 @@ $pairedCellWidth: 60px;
   .ui-grid-canvas, .ui-grid-selection-row-header-buttons {
     pointer-events: none;
   }
+}
+
+.glyphicon[disabled] {
+  pointer-events: none;
+  opacity: 0.3;
 }

@@ -6,6 +6,9 @@ from rest_framework import routers
 
 from rest_framework_nested import routers as nested_routers
 
+from seed.views.v3.analyses import AnalysisViewSet
+from seed.views.v3.analysis_messages import AnalysisMessageViewSet
+from seed.views.v3.analysis_views import AnalysisPropertyViewViewSet
 from seed.views.v3.building_files import BuildingFileViewSet
 from seed.views.v3.column_list_profiles import ColumnListProfileViewSet
 from seed.views.v3.column_mapping_profiles import ColumnMappingProfileViewSet
@@ -40,6 +43,7 @@ from seed.views.v3.uploads import UploadViewSet
 from seed.views.v3.users import UserViewSet
 
 api_v3_router = routers.DefaultRouter()
+api_v3_router.register(r'analyses', AnalysisViewSet, base_name='analyses')
 api_v3_router.register(r'building_files', BuildingFileViewSet, base_name="building_files")
 api_v3_router.register(r'column_list_profiles', ColumnListProfileViewSet, base_name="column_list_profiles")
 api_v3_router.register(r'column_mapping_profiles', ColumnMappingProfileViewSet, base_name='column_mapping_profiles')
@@ -74,6 +78,15 @@ data_quality_checks_router.register(r'rules', DataQualityCheckRuleViewSet, base_
 organizations_router = nested_routers.NestedSimpleRouter(api_v3_router, r'organizations', lookup='organization')
 organizations_router.register(r'users', OrganizationUserViewSet, base_name='organization-users')
 
+analysis_views_router = nested_routers.NestedSimpleRouter(api_v3_router, r'analyses', lookup='analysis')
+analysis_views_router.register(r'views', AnalysisPropertyViewViewSet, base_name='analysis-views')
+
+analysis_messages_router = nested_routers.NestedSimpleRouter(api_v3_router, r'analyses', lookup='analysis')
+analysis_messages_router.register(r'messages', AnalysisMessageViewSet, base_name='analysis-messages')
+
+analysis_view_messages_router = nested_routers.NestedSimpleRouter(analysis_views_router, r'views', lookup='views')
+analysis_view_messages_router.register(r'views_messages', AnalysisMessageViewSet, base_name='analysis-messages')
+
 properties_router = nested_routers.NestedSimpleRouter(api_v3_router, r'properties', lookup='property')
 properties_router.register(r'notes', NoteViewSet, base_name='property-notes')
 properties_router.register(r'scenarios', PropertyScenarioViewSet, base_name='property-scenarios')
@@ -96,6 +109,9 @@ urlpatterns = [
         {'inventory_type': 'taxlot'},
     ),
     url(r'^', include(organizations_router.urls)),
+    url(r'^', include(analysis_views_router.urls)),
+    url(r'^', include(analysis_messages_router.urls)),
+    url(r'^', include(analysis_view_messages_router.urls)),
     url(r'^', include(properties_router.urls)),
     url(r'^', include(taxlots_router.urls)),
 ]

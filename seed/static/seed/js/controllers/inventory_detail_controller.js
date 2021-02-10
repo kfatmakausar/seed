@@ -473,6 +473,22 @@ angular.module('BE.seed.controller.inventory_detail', [])
         });
       };
 
+      $scope.open_analyses_modal = function () {
+        var modalInstance = $uibModal.open({
+          templateUrl: urls.static_url + 'seed/partials/inventory_detail_analyses_modal.html',
+          controller: 'inventory_detail_analyses_modal_controller',
+          resolve: {
+            inventory_ids: function () {
+              return [$scope.inventory.view_id];
+            }
+            // meters: ['$stateParams', 'user_service', 'meter_service', function ($stateParams, user_service, meter_service) {
+            // var organization_id = user_service.get_organization().id;
+            // return meter_service.get_meters($stateParams.view_id, organization_id);
+          // }],
+          }
+        });
+      };
+
       $scope.unmerge = function () {
         var modalInstance = $uibModal.open({
           templateUrl: urls.static_url + 'seed/partials/unmerge_modal.html',
@@ -689,6 +705,19 @@ angular.module('BE.seed.controller.inventory_detail', [])
           return $filter('number')(value, $scope.organization.display_significant_figures)
         }
         return value
+      }
+
+      $scope.inventory_display_name = function(property_type) {
+        let error = '';
+        let field = property_type == "property" ? $scope.organization.property_display_field : $scope.organization.taxlot_display_field;
+        if (!(field in $scope.item_state)) {
+          error = field + ' does not exist';
+          field = 'address_line_1';
+        }
+        if (!$scope.item_state[field]) {
+          error += (error == '' ? '' : ' and default ') + field + ' is blank';
+        }
+        $scope.inventory_name = $scope.item_state[field] ? $scope.item_state[field] : '(' + error + ') <i class="glyphicon glyphicon-question-sign" title="This can be changed from the organization settings page."></i>';
       }
 
       /**

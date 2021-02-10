@@ -37,6 +37,9 @@ angular.module('BE.seed.controllers', [
   'BE.seed.controller.about',
   'BE.seed.controller.accounts',
   'BE.seed.controller.admin',
+  'BE.seed.controller.analyses',
+  'BE.seed.controller.analysis',
+  'BE.seed.controller.analysis_run',
   'BE.seed.controller.api',
   'BE.seed.controller.column_mapping_profile_modal',
   'BE.seed.controller.column_mappings',
@@ -51,6 +54,7 @@ angular.module('BE.seed.controllers', [
   'BE.seed.controller.dataset',
   'BE.seed.controller.dataset_detail',
   'BE.seed.controller.delete_column_modal',
+  'BE.seed.controller.delete_cycle_modal',
   'BE.seed.controller.delete_dataset_modal',
   'BE.seed.controller.delete_file_modal',
   'BE.seed.controller.delete_modal',
@@ -63,6 +67,8 @@ angular.module('BE.seed.controllers', [
   'BE.seed.controller.green_button_upload_modal',
   'BE.seed.controller.inventory_cycles',
   'BE.seed.controller.inventory_detail',
+  'BE.seed.controller.inventory_detail_analyses',
+  'BE.seed.controller.inventory_detail_analyses_modal',
   'BE.seed.controller.inventory_detail_cycles',
   'BE.seed.controller.inventory_detail_settings',
   'BE.seed.controller.inventory_detail_notes',
@@ -98,6 +104,7 @@ angular.module('BE.seed.controllers', [
 angular.module('BE.seed.filters', [
   'district',
   'fromNow',
+  'getAnalysisRunAuthor',
   'ignoremap',
   'startFrom',
   'stripImportPrefix',
@@ -116,6 +123,7 @@ angular.module('BE.seed.directives', [
   'sdUploader'
 ]);
 angular.module('BE.seed.services', [
+  'BE.seed.service.analyses',
   'BE.seed.service.auth',
   'BE.seed.service.data_quality',
   'BE.seed.service.column_mappings',
@@ -252,7 +260,6 @@ SEED_app.run([
     $state.defaultErrorHandler(function (error) {
       $log.log(error);
     });
-
   }
 ]);
 
@@ -376,6 +383,109 @@ SEED_app.config(['stateHelperProvider', '$urlRouterProvider', '$locationProvider
           users_payload: ['auth_payload', 'user_service', function (auth_payload, user_service) {
             // Require auth_payload to successfully complete before attempting
             return user_service.get_users();
+          }]
+        }
+      })
+      .state({
+        name: 'analyses',
+        url: '/accounts/{organization_id:int}/analyses',
+        templateUrl: static_url + 'seed/partials/analyses.html',
+        controller: 'analyses_controller',
+        resolve: {
+          analyses_payload: ['analyses_service', '$stateParams', function (analyses_service, $stateParams) {
+            return analyses_service.get_analyses_for_org($stateParams.organization_id);
+          }],
+          organization_payload: ['organization_service', '$stateParams', function (organization_service, $stateParams) {
+            return organization_service.get_organization($stateParams.organization_id);
+          }],
+          users_payload: ['organization_service', '$stateParams', function (organization_service, $stateParams) {
+            var organization_id = $stateParams.organization_id;
+            return organization_service.get_organization_users({org_id: organization_id});
+          }],
+          auth_payload: ['auth_service', '$stateParams', '$q', function (auth_service, $stateParams, $q) {
+            var organization_id = $stateParams.organization_id;
+            return auth_service.is_authorized(organization_id, ['requires_owner', 'requires_member'])
+              .then(function (data) {
+                if (data.auth.requires_member) {
+                  return data;
+                } else {
+                  return $q.reject('not authorized');
+                }
+              }, function (data) {
+                return $q.reject(data.message);
+              });
+          }]
+        }
+      })
+      .state({
+        name: 'analysis',
+        url: '/accounts/{organization_id:int}/analyses/{analysis_id:int}',
+        templateUrl: static_url + 'seed/partials/analysis.html',
+        controller: 'analysis_controller',
+        resolve: {
+          analysis_payload: ['analyses_service', '$stateParams', function (analyses_service, $stateParams) {
+            return analyses_service.get_analysis_for_org($stateParams.analysis_id, $stateParams.organization_id);
+          }],
+          messages_payload: ['analyses_service', '$stateParams', function (analyses_service, $stateParams) {
+            return analyses_service.get_analysis_messages_for_org($stateParams.analysis_id, $stateParams.organization_id);
+          }],
+          organization_payload: ['organization_service', '$stateParams', function (organization_service, $stateParams) {
+            return organization_service.get_organization($stateParams.organization_id);
+          }],
+          users_payload: ['organization_service', '$stateParams', function (organization_service, $stateParams) {
+            return organization_service.get_organization_users({org_id: $stateParams.organization_id});
+          }],
+          views_payload: ['analyses_service', '$stateParams', function (analyses_service, $stateParams) {
+            return analyses_service.get_analysis_views_for_org($stateParams.analysis_id, $stateParams.organization_id);
+          }],
+          auth_payload: ['auth_service', '$stateParams', '$q', function (auth_service, $stateParams, $q) {
+            var organization_id = $stateParams.organization_id;
+            return auth_service.is_authorized(organization_id, ['requires_owner', 'requires_member'])
+              .then(function (data) {
+                if (data.auth.requires_member) {
+                  return data;
+                } else {
+                  return $q.reject('not authorized');
+                }
+              }, function (data) {
+                return $q.reject(data.message);
+              });
+          }]
+        }
+      })
+      .state({
+        name: 'analysis_run',
+        url: '/accounts/{organization_id:int}/analyses/{analysis_id:int}/runs/{run_id:int}',
+        templateUrl: static_url + 'seed/partials/analysis_run.html',
+        controller: 'analysis_run_controller',
+        resolve: {
+          analysis_payload: ['analyses_service', '$stateParams', 'user_service', function (analyses_service, $stateParams, user_service) {
+            return analyses_service.get_analysis_for_org($stateParams.analysis_id, user_service.get_organization().id);
+          }],
+          messages_payload: ['analyses_service', '$stateParams', 'user_service', function (analyses_service, $stateParams, user_service) {
+            return analyses_service.get_analysis_messages_for_org($stateParams.analysis_id, user_service.get_organization().id);
+          }],
+          view_payload: ['analyses_service', '$stateParams', 'user_service', function (analyses_service, $stateParams, user_service) {
+            return analyses_service.get_analysis_view_for_org($stateParams.analysis_id, $stateParams.run_id, user_service.get_organization().id);
+          }],
+          organization_payload: ['user_service', 'organization_service', function(user_service, organization_service) {
+            return organization_service.get_organization(user_service.get_organization().id)
+          }],
+          users_payload: ['organization_service', '$stateParams', 'user_service', function (organization_service, $stateParams, user_service) {
+            return organization_service.get_organization_users({org_id: user_service.get_organization().id});
+          }],
+          auth_payload: ['auth_service', '$stateParams', '$q', 'user_service', function (auth_service, $stateParams, $q, user_service) {
+            var organization_id = user_service.get_organization().id;
+            return auth_service.is_authorized(organization_id, ['requires_owner', 'requires_member'])
+              .then(function (data) {
+                if (data.auth.requires_member) {
+                  return data;
+                } else {
+                  return $q.reject('not authorized');
+                }
+              }, function (data) {
+                return $q.reject(data.message);
+              });
           }]
         }
       })
@@ -518,6 +628,9 @@ SEED_app.config(['stateHelperProvider', '$urlRouterProvider', '$locationProvider
               }
             });
             return promise;
+          }],
+          organization_payload: ['user_service', 'organization_service', function(user_service, organization_service) {
+            return organization_service.get_organization(user_service.get_organization().id)
           }],
           notes: ['$stateParams', 'note_service', 'user_service', function ($stateParams, note_service, user_service) {
             var organization_id = user_service.get_organization().id;
@@ -775,6 +888,14 @@ SEED_app.config(['stateHelperProvider', '$urlRouterProvider', '$locationProvider
           organization_payload: ['organization_service', '$stateParams', function (organization_service, $stateParams) {
             var organization_id = $stateParams.organization_id;
             return organization_service.get_organization(organization_id);
+          }],
+          property_column_names: ['$stateParams', 'inventory_service', function ($stateParams, inventory_service) {
+            var organization_id = $stateParams.organization_id;
+            return inventory_service.get_property_column_names_for_org(organization_id);
+          }],
+          taxlot_column_names: ['$stateParams', 'inventory_service', function ($stateParams, inventory_service) {
+            var organization_id = $stateParams.organization_id;
+            return inventory_service.get_taxlot_column_names_for_org(organization_id);
           }],
           auth_payload: ['auth_service', '$stateParams', '$q', function (auth_service, $stateParams, $q) {
             var organization_id = $stateParams.organization_id;
@@ -1345,6 +1466,35 @@ SEED_app.config(['stateHelperProvider', '$urlRouterProvider', '$locationProvider
         }
       })
       .state({
+        name: 'inventory_detail_analyses',
+        url: '/{inventory_type:properties}/{view_id:int}/analyses',
+        templateUrl: static_url + 'seed/partials/inventory_detail_analyses.html',
+        controller: 'inventory_detail_analyses_controller',
+        resolve: {
+          inventory_payload: ['$state', '$stateParams', 'inventory_service', function ($state, $stateParams, inventory_service) {
+            // load `get_building` before page is loaded to avoid page flicker.
+            var view_id = $stateParams.view_id;
+            var promise = inventory_service.get_property(view_id);
+            promise.catch(function (err) {
+              if (err.message.match(/^(?:property|taxlot) view with id \d+ does not exist$/)) {
+                // Inventory item not found for current organization, redirecting
+                $state.go('inventory_list', {inventory_type: $stateParams.inventory_type});
+              }
+            });
+            return promise;
+          }],
+          analyses_payload: ['inventory_service', 'analyses_service', '$stateParams', 'inventory_payload', function (inventory_service, analyses_service, $stateParams, inventory_payload) {
+            return analyses_service.get_analyses_for_canonical_property(inventory_payload.property.id);
+          }],
+          organization_payload: ['user_service', 'organization_service', function(user_service, organization_service) {
+            return organization_service.get_organization(user_service.get_organization().id)
+          }],
+          users_payload: ['user_service', 'organization_service', function (user_service, organization_service) {
+            return organization_service.get_organization_users({org_id: user_service.get_organization().id});
+          }],
+        }
+      })
+      .state({
         name: 'inventory_detail_meters',
         url: '/{inventory_type:properties|taxlots}/{view_id:int}/meters',
         templateUrl: static_url + 'seed/partials/inventory_detail_meters.html',
@@ -1372,7 +1522,10 @@ SEED_app.config(['stateHelperProvider', '$urlRouterProvider', '$locationProvider
           }],
           cycles: ['cycle_service', function (cycle_service) {
             return cycle_service.get_cycles();
-          }]
+          }],
+          organization_payload: ['user_service', 'organization_service', function(user_service, organization_service) {
+            return organization_service.get_organization(user_service.get_organization().id)
+          }],
         }
       });
   }]);
