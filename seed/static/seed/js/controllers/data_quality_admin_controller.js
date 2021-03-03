@@ -619,12 +619,19 @@ angular.module('BE.seed.controller.data_quality_admin', [])
         var sortedKeys = _.keys($scope.ruleGroups[$scope.inventory_type]).sort(function (a, b) {
           return naturalSort(displayNames[a], displayNames[b]);
         });
-        var nullKey = _.remove(sortedKeys, function (key) {
-          return key === 'null';
-        });
+        var nullKey = _.remove(sortedKeys, key => key === 'null');
 
-        // Put created unassigned rows first
-        return nullKey.concat(sortedKeys);
+        var keysWithNewRules = [];
+        for (const [key, rules] of Object.entries($scope.ruleGroups[$scope.inventory_type])) {
+          if (key !== 'null' && rules.some(rule => rule.new)) {
+            keysWithNewRules.push(key);
+          }
+        }
+        _.remove(sortedKeys, key => keysWithNewRules.includes(key));
+
+        // Put new unassigned rows first, followed by groups with new unsaved rules
+        console.log([...nullKey, ...keysWithNewRules, ...sortedKeys]);
+        return [...nullKey, ...keysWithNewRules, ...sortedKeys];
       };
 
       $scope.selectAll = function () {
