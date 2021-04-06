@@ -35,7 +35,6 @@ angular.module('BE.seed.vendor_dependencies', [
 ]);
 angular.module('BE.seed.controllers', [
   'BE.docs.controller.faq',
-  'BE.seed.controller.about',
   'BE.seed.controller.accounts',
   'BE.seed.controller.admin',
   'BE.seed.controller.analyses',
@@ -165,6 +164,7 @@ var SEED_app = angular.module('BE.seed', [
   'BE.seed.filters',
   'BE.seed.directives',
   'BE.seed.services',
+  'SEED.components',
   'BE.seed.controllers',
   'BE.seed.utilities',
   'BE.seed.constants'
@@ -864,12 +864,10 @@ SEED_app.config(['stateHelperProvider', '$urlRouterProvider', '$locationProvider
       .state({
         name: 'about',
         url: '/about',
-        templateUrl: static_url + 'seed/partials/about.html',
-        controller: 'about_controller',
+        component: 'about',
         resolve: {
-          version_payload: ['main_service', function (main_service) {
-            return main_service.version();
-          }]
+          urls: ['urls', urls => urls],
+          versionPayload: ['main_service', ({version}) => version()]
         }
       })
       .state({
