@@ -1,6 +1,6 @@
 .DS_Store
 .cache
-*.env
+.env
 .idea
 .project
 .pydevproject
@@ -87,3 +87,4 @@ docker-compose.*.yml
 
 # generated files
 /auto*.csv
+
