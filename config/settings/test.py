@@ -36,7 +36,6 @@ CELERY_LOG_LEVEL = LOG_LEVELS['WARNING']
 # Testing
 INSTALLED_APPS += (
     "django_nose",
-    "django_extensions",
 )
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 NOSE_PLUGINS = [
