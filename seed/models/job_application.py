@@ -4,9 +4,9 @@ from __future__ import unicode_literals
 from django.db import models
 
 class JobApplication(models.Model):
-    id = models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)
-    bin = models.IntegerField(null=False, blank=False)
+    # id = models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)
     job_number = models.AutoField(verbose_name='Job_Number', serialize=False, auto_created=True, primary_key=True)
+    bin = models.IntegerField(null=False, blank=False)
     job_type = models.CharField(null=True, blank=True)
     doc_number = models.CharField(null=True, blank=True)
     city_owned = models.CharField(null=True, blank=True)
