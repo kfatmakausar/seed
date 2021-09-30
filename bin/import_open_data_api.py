@@ -27,6 +27,9 @@ results_df = pd.DataFrame.from_records(results)
 # Query fields needed for the permit_issuance table
 table_df = results_df.loc[:, ['bin__', 'job__', 'work_type', 'permit_status', 'permit_subtype']]
 
+# Rename the columns of the dataframe to match columns of postgresql table
+table_df.rename(columns={"bin__": "bin_num", "job__": "job_number", "work_type": "work_type", "permit_status": "permit_status", "permit_subtype": "permit_subtype"})
+
 # Specify connection parameters
 param_dic = {
     "host"      : "localhost",
