@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from job_application import JobApplication
+from .job_application import JobApplication
 
 from django.db import models
     
