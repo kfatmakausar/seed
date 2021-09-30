@@ -32,6 +32,7 @@ from .analysis_output_files import *  # noqa
 from .analysis_messages import *  # noqa
 from .postoffice import * # noqa
 from .permit_issuance import *
+from .job_application import *
 
 from .certification import (    # noqa
     GreenAssessment,
