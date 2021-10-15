@@ -11,9 +11,13 @@ import psycopg2
 from dotenv import load_dotenv
 import os
 
-# API and Token
+# dotenv parameters
 load_dotenv()
 appToken = os.getenv('permitApiKey')
+usernameDb = os.getenv('userKey')
+passwordDb = os.getenv('userPassword')
+
+# API and Token
 client = Socrata("data.cityofnewyork.us", appToken)
 
 
@@ -26,6 +30,7 @@ results_df = pd.DataFrame.from_records(results)
 
 # Query fields needed for the permit_issuance table
 table_df = results_df.loc[:, ['bin__', 'job__', 'work_type', 'permit_status', 'permit_subtype']]
+print(table_df)
 
 # Rename the columns of the dataframe to match columns of postgresql table
 table_df.rename(columns={"bin__": "bin_num", "job__": "job_number", "work_type": "work_type", "permit_status": "permit_status", "permit_subtype": "permit_subtype"})
@@ -33,26 +38,26 @@ table_df.rename(columns={"bin__": "bin_num", "job__": "job_number", "work_type":
 # Specify connection parameters
 param_dic = {
     "host"      : "localhost",
-    "database"  : "TestImport",
-    "user"      : "postgres",
-    "password"  : "postgres"
+    "database"  : "seed",
+    "user"      : usernameDb,
+    "password"  : passwordDb
 }
 
-# Connect to the PostgreSQL database server
-conn = None
-try:
-    # connect to the PostgreSQL server
-    print('Connecting to the PostgreSQL database...')
-    conn = psycopg2.connect(param_dic)
-except (Exception, psycopg2.DatabaseError) as error:
-    print(error)
-    conn = None
-print("Connection successful")
+# # Connect to the PostgreSQL database server
+# conn = None
+# try:
+#     # connect to the PostgreSQL server
+#     print('Connecting to the PostgreSQL database...')
+#     conn = psycopg2.connect(param_dic)
+# except (Exception, psycopg2.DatabaseError) as error:
+#     print(error)
+#     conn = None
+# print("Connection successful")
 
 # Bulk insert into the table
 # Use to_sql method to append dataframe to table
 def to_alchemy(table_df):
-    connect = "postgresql+psycopg2://%s:%s@%s:5433/%s" % (
+    connect = "postgresql+psycopg2://%s:%s@%s:5432/%s" % (
     param_dic['user'],
     param_dic['password'],
     param_dic['host'],
@@ -60,7 +65,7 @@ def to_alchemy(table_df):
 )
     engine = create_engine(connect)
     table_df.to_sql(
-        'test_table', 
+        'seed_permitissuance', 
         con=engine, 
         index=False, 
         if_exists='append'
